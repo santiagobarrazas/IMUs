@@ -221,7 +221,7 @@ class BLEManager(
     }
 
     @SuppressLint("MissingPermission")
-    fun sendStartSignalsendStartSignal(device: BluetoothDevice) {
+    fun sendStartSignal(device: BluetoothDevice) {
         val gatt = deviceGattMap[device.address] ?: return
         val characteristic = gatt.getService(IMU_SERVICE_UUID)?.getCharacteristic(COMMAND_UUID) ?: return
 
