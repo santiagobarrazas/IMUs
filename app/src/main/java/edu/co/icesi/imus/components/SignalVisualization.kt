@@ -1,5 +1,6 @@
 package edu.co.icesi.imus.components
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SignalVisualization(
     data: List<IMUData>,
+    device: String,
     modifier: Modifier = Modifier
 ) {
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -82,7 +84,7 @@ fun SignalVisualization(
 
                     val lastPoints = data.takeLast(100)
                     if (lastPoints.isNotEmpty()) {
-                        drawAccelerometerData(lastPoints, size.height)
+                        drawAccelerometerData(lastPoints, size.height, device)
                     }
                 }
             }
@@ -128,7 +130,7 @@ fun SignalVisualization(
 
                     val lastPoints = data.takeLast(100)
                     if (lastPoints.isNotEmpty()) {
-                        drawGyroscopeData(lastPoints, size.height)
+                        drawGyroscopeData(lastPoints, size.height, device)
                     }
                 }
             }
@@ -205,7 +207,7 @@ private fun DrawScope.drawPlotBackground() {
     )
 }
 
-private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float) {
+private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float, device: String) {
     val xPoints = mutableListOf<Offset>()
     val yPoints = mutableListOf<Offset>()
     val zPoints = mutableListOf<Offset>()
@@ -214,17 +216,19 @@ private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float) 
     val scaleY = height / 4  // Scale for ±2g range
 
     data.forEachIndexed { index, imuData ->
-        val x = index * scaleX
-        val centerY = height / 2
+        if (imuData.deviceId == device){
+            val x = index * scaleX
+            val centerY = height / 2
 
-        // Scale accelerometer data from ±2g range to pixel coordinates
-        val ax = centerY - (imuData.accelerometer.x * scaleY)
-        val ay = centerY - (imuData.accelerometer.y * scaleY)
-        val az = centerY - (imuData.accelerometer.z * scaleY)
+            // Scale accelerometer data from ±2g range to pixel coordinates
+            val ax = centerY - (imuData.accelerometer.x * scaleY)
+            val ay = centerY - (imuData.accelerometer.y * scaleY)
+            val az = centerY - (imuData.accelerometer.z * scaleY)
 
-        xPoints.add(Offset(x, ax))
-        yPoints.add(Offset(x, ay))
-        zPoints.add(Offset(x, az))
+            xPoints.add(Offset(x, ax))
+            yPoints.add(Offset(x, ay))
+            zPoints.add(Offset(x, az))
+        }
     }
 
     // Draw paths
@@ -233,7 +237,7 @@ private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float) 
     drawLines(points = zPoints, color = Color.Blue, strokeWidth = 2f)
 }
 
-private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float) {
+private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float, device: String) {
     val xPoints = mutableListOf<Offset>()
     val yPoints = mutableListOf<Offset>()
     val zPoints = mutableListOf<Offset>()
@@ -242,17 +246,19 @@ private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float) {
     val scaleY = height / 500  // Scale for ±250 deg/s range
 
     data.forEachIndexed { index, imuData ->
-        val x = index * scaleX
-        val centerY = height / 2
+        if (imuData.deviceId == device){
+            val x = index * scaleX
+            val centerY = height / 2
 
-        // Scale gyroscope data from ±250 deg/s range to pixel coordinates
-        val gx = centerY - (imuData.gyroscope.x * scaleY)
-        val gy = centerY - (imuData.gyroscope.y * scaleY)
-        val gz = centerY - (imuData.gyroscope.z * scaleY)
+            // Scale gyroscope data from ±250 deg/s range to pixel coordinates
+            val gx = centerY - (imuData.gyroscope.x * scaleY)
+            val gy = centerY - (imuData.gyroscope.y * scaleY)
+            val gz = centerY - (imuData.gyroscope.z * scaleY)
 
-        xPoints.add(Offset(x, gx))
-        yPoints.add(Offset(x, gy))
-        zPoints.add(Offset(x, gz))
+            xPoints.add(Offset(x, gx))
+            yPoints.add(Offset(x, gy))
+            zPoints.add(Offset(x, gz))
+        }
     }
 
     // Draw paths

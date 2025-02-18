@@ -1,10 +1,14 @@
 package edu.co.icesi.imus.screens
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +24,7 @@ import edu.co.icesi.imus.components.DeviceCard
 import edu.co.icesi.imus.components.SignalVisualization
 import edu.co.icesi.imus.viewmodel.DataCollectionViewModel
 
+@SuppressLint("MissingPermission")
 @Composable
 fun DataCollectionScreen(
     viewModel: DataCollectionViewModel,
@@ -47,12 +52,17 @@ fun DataCollectionScreen(
             }
         }
 
-        SignalVisualization(
-            data = uiState.imuData,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        )
+        uiState.connectedDevices.forEach {
+            Text(it.name)
+            SignalVisualization(
+                data = uiState.imuData,
+                device = it.name,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),

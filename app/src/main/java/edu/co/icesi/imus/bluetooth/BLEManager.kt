@@ -208,13 +208,13 @@ class BLEManager(
 
             // Create IMUData object
             val imuData = IMUData(
-                deviceId = deviceAddress,
+                deviceId = jsonObj["deviceId"]?.toString()?.replace("\"", "") ?: "",
                 accelerometer = accelerometer,
                 gyroscope = gyroscope,
                 timestamp = jsonObj["timestamp"]?.jsonPrimitive?.long ?: 0L
             )
 
-            _imuData.value += imuData.copy(deviceId = deviceAddress)
+            _imuData.value += imuData
         } catch (e: Exception) {
             Log.e("BLE", "Error parsing IMU data", e)
         }
