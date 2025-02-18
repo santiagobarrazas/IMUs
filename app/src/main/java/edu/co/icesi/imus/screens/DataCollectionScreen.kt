@@ -75,11 +75,7 @@ fun DataCollectionScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                onClick = {
-                    if(viewModel.testType)
-                    viewModel.startDataCollection()
-
-                          },
+                onClick = { viewModel.startDataCollection() },
                 enabled = !uiState.isCollecting
             ) {
                 Text("Start")
