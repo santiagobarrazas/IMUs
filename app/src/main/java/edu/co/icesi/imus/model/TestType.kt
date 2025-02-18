@@ -4,5 +4,6 @@ enum class TestType {
     GAIT,
     TOPOLOGICAL_GAIT_ANALYSIS,
     DYNAMIC_GAIT_INDEX,
-    TIMED_UP_AND_GO
+    TIMED_UP_AND_GO,
+    ONLY_RIGHT_HAND,
 }

@@ -1,7 +1,6 @@
 package edu.co.icesi.imus.model
 
 data class IMUData(
-    val id: Long,
     val accelerometer: AccelerometerData,
     val gyroscope: GyroscopeData,
     val deviceId: String,
