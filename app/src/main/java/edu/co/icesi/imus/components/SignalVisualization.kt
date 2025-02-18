@@ -1,95 +1,273 @@
 package edu.co.icesi.imus.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import edu.co.icesi.imus.model.IMUData
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun SignalVisualization(
     data: List<IMUData>,
     modifier: Modifier = Modifier
 ) {
-    val canvasSize = remember { mutableStateOf(IntSize.Zero) }
+    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
-    Canvas(
+    Column(
         modifier = modifier
-            .onSizeChanged { canvasSize.value = it }
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
-        val width = canvasSize.value.width.toFloat()
-        val height = canvasSize.value.height.toFloat()
-
-        // Draw grid
-        drawGrid(width, height)
-
-        // Draw signals
-        data.takeLast(50).forEachIndexed { index, imuData ->
-            if (index > 0) {
-                val prevData = data[index - 1]
-                drawSignalLine(
-                    prevData,
-                    imuData,
-                    index - 1,
-                    index,
-                    width,
-                    height
-                )
+        // Accelerometer Plot
+        Text(
+            text = "Accelerometer (g)",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Y-axis labels for Accelerometer
+            Column(
+                modifier = Modifier.width(40.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(text = "2", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = "0", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = "-2", style = MaterialTheme.typography.bodySmall)
             }
+
+            // Accelerometer Plot
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(Color.White)
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onSizeChanged { canvasSize = it }
+                ) {
+                    drawPlotBackground()
+
+                    val lastPoints = data.takeLast(100)
+                    if (lastPoints.isNotEmpty()) {
+                        drawAccelerometerData(lastPoints, size.height)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Gyroscope Plot
+        Text(
+            text = "Gyroscope (deg/s)",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Y-axis labels for Gyroscope
+            Column(
+                modifier = Modifier.width(40.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(text = "250", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = "0", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = "-250", style = MaterialTheme.typography.bodySmall)
+            }
+
+            // Gyroscope Plot
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(Color.White)
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onSizeChanged { canvasSize = it }
+                ) {
+                    drawPlotBackground()
+
+                    val lastPoints = data.takeLast(100)
+                    if (lastPoints.isNotEmpty()) {
+                        drawGyroscopeData(lastPoints, size.height)
+                    }
+                }
+            }
+        }
+
+        // Legend
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            LegendItem(color = Color.Red, text = "X-axis")
+            Spacer(modifier = Modifier.width(16.dp))
+            LegendItem(color = Color.Green, text = "Y-axis")
+            Spacer(modifier = Modifier.width(16.dp))
+            LegendItem(color = Color.Blue, text = "Z-axis")
         }
     }
 }
 
-fun DrawScope.drawGrid(width: Float, height: Float) {
-    val stepX = width / 10
-    val stepY = height / 10
-    val gridColor = Color.Gray.copy(alpha = 0.3f)
-
-    for (i in 1 until 10) {
-        val x = i * stepX
-        drawLine(gridColor, start = androidx.compose.ui.geometry.Offset(x, 0f), end = androidx.compose.ui.geometry.Offset(x, height))
-    }
-
-    for (i in 1 until 10) {
-        val y = i * stepY
-        drawLine(gridColor, start = androidx.compose.ui.geometry.Offset(0f, y), end = androidx.compose.ui.geometry.Offset(width, y))
+@Composable
+private fun LegendItem(color: Color, text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = text, style = MaterialTheme.typography.bodySmall)
     }
 }
 
-fun DrawScope.drawSignalLine(
-    prevData: IMUData,
-    imuData: IMUData,
-    prevIndex: Int,
-    index: Int,
-    width: Float,
-    height: Float
-) {
-    val scaleX = width / 50
-    val scaleY = height / 4
+private fun DrawScope.drawPlotBackground() {
+    // Draw grid
+    val gridColor = Color.LightGray.copy(alpha = 0.5f)
+    val verticalLines = 10
+    val horizontalLines = 6
 
-    val prevX = prevIndex * scaleX
-    val currX = index * scaleX
+    val verticalStep = size.width / verticalLines
+    val horizontalStep = size.height / horizontalLines
 
-    val prevAccY = height / 2 - prevData.accelerometer.y * scaleY
-    val currAccY = height / 2 - imuData.accelerometer.y * scaleY
+    // Vertical grid lines
+    for (i in 0..verticalLines) {
+        val x = i * verticalStep
+        drawLine(
+            color = gridColor,
+            start = Offset(x, 0f),
+            end = Offset(x, size.height),
+            strokeWidth = 1f
+        )
+    }
+
+    // Horizontal grid lines
+    for (i in 0..horizontalLines) {
+        val y = i * horizontalStep
+        drawLine(
+            color = gridColor,
+            start = Offset(0f, y),
+            end = Offset(size.width, y),
+            strokeWidth = 1f
+        )
+    }
+
+    // Draw center line
     drawLine(
-        color = Color.Blue,
-        start = androidx.compose.ui.geometry.Offset(prevX, prevAccY),
-        end = androidx.compose.ui.geometry.Offset(currX, currAccY),
+        color = gridColor.copy(alpha = 0.8f),
+        start = Offset(0f, size.height / 2),
+        end = Offset(size.width, size.height / 2),
         strokeWidth = 2f
     )
+}
 
-    val prevGyroY = height / 2 - prevData.gyroscope.y * scaleY
-    val currGyroY = height / 2 - imuData.gyroscope.y * scaleY
-    drawLine(
-        color = Color.Red,
-        start = androidx.compose.ui.geometry.Offset(prevX, prevGyroY),
-        end = androidx.compose.ui.geometry.Offset(currX, currGyroY),
-        strokeWidth = 2f
-    )
+private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float) {
+    val xPoints = mutableListOf<Offset>()
+    val yPoints = mutableListOf<Offset>()
+    val zPoints = mutableListOf<Offset>()
+
+    val scaleX = size.width / (data.size - 1)
+    val scaleY = height / 4  // Scale for ±2g range
+
+    data.forEachIndexed { index, imuData ->
+        val x = index * scaleX
+        val centerY = height / 2
+
+        // Scale accelerometer data from ±2g range to pixel coordinates
+        val ax = centerY - (imuData.accelerometer.x * scaleY)
+        val ay = centerY - (imuData.accelerometer.y * scaleY)
+        val az = centerY - (imuData.accelerometer.z * scaleY)
+
+        xPoints.add(Offset(x, ax))
+        yPoints.add(Offset(x, ay))
+        zPoints.add(Offset(x, az))
+    }
+
+    // Draw paths
+    drawLines(points = xPoints, color = Color.Red, strokeWidth = 2f)
+    drawLines(points = yPoints, color = Color.Green, strokeWidth = 2f)
+    drawLines(points = zPoints, color = Color.Blue, strokeWidth = 2f)
+}
+
+private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float) {
+    val xPoints = mutableListOf<Offset>()
+    val yPoints = mutableListOf<Offset>()
+    val zPoints = mutableListOf<Offset>()
+
+    val scaleX = size.width / (data.size - 1)
+    val scaleY = height / 500  // Scale for ±250 deg/s range
+
+    data.forEachIndexed { index, imuData ->
+        val x = index * scaleX
+        val centerY = height / 2
+
+        // Scale gyroscope data from ±250 deg/s range to pixel coordinates
+        val gx = centerY - (imuData.gyroscope.x * scaleY)
+        val gy = centerY - (imuData.gyroscope.y * scaleY)
+        val gz = centerY - (imuData.gyroscope.z * scaleY)
+
+        xPoints.add(Offset(x, gx))
+        yPoints.add(Offset(x, gy))
+        zPoints.add(Offset(x, gz))
+    }
+
+    // Draw paths
+    drawLines(points = xPoints, color = Color.Red, strokeWidth = 2f)
+    drawLines(points = yPoints, color = Color.Green, strokeWidth = 2f)
+    drawLines(points = zPoints, color = Color.Blue, strokeWidth = 2f)
+}
+
+private fun DrawScope.drawLines(points: List<Offset>, color: Color, strokeWidth: Float) {
+    for (i in 0 until points.size - 1) {
+        drawLine(
+            color = color,
+            start = points[i],
+            end = points[i + 1],
+            strokeWidth = strokeWidth
+        )
+    }
 }
