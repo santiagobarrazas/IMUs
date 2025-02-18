@@ -52,16 +52,22 @@ fun DataCollectionScreen(
             }
         }
 
-        uiState.connectedDevices.forEach {
-            Text(it.name)
-            SignalVisualization(
-                data = uiState.imuData,
-                device = it.name,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+        LazyColumn (
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 8.dp)
+        ) {
+            items(uiState.connectedDevices) { device ->
+                Text(device.name)
+                SignalVisualization(
+                    data = uiState.imuData,
+                    device = device.name,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
 
         Row(
@@ -69,7 +75,11 @@ fun DataCollectionScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                onClick = { viewModel.startDataCollection() },
+                onClick = {
+                    if(viewModel.testType)
+                    viewModel.startDataCollection()
+
+                          },
                 enabled = !uiState.isCollecting
             ) {
                 Text("Start")
