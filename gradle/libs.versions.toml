@@ -1,4 +1,5 @@
 [versions]
+accompanistScrollbar = "0.32.0"
 activityComposeVersion = "1.8.2"
 agp = "8.8.0"
 datastorePreferences = "1.1.2"
@@ -15,6 +16,8 @@ datastoreCoreAndroid = "1.1.2"
 datastorePreferencesCoreJvm = "1.1.2"
 
 [libraries]
+accompanist-insets = { module = "com.google.accompanist:accompanist-insets", version.ref = "accompanistScrollbar" }
+accompanist-scrollbar = { module = "com.google.accompanist:accompanist-scrollbar", version.ref = "accompanistScrollbar" }
 androidx-activity-compose-v182 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }

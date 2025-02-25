@@ -220,10 +220,9 @@ private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float, 
             val x = index * scaleX
             val centerY = height / 2
 
-            // Scale accelerometer data from ±2g range to pixel coordinates
-            val ax = centerY - (imuData.accelerometer.x * scaleY)
-            val ay = centerY - (imuData.accelerometer.y * scaleY)
-            val az = centerY - (imuData.accelerometer.z * scaleY)
+            val ax = (centerY - (imuData.accelerometer.x * scaleY)).coerceIn(0f, height)
+            val ay = (centerY - (imuData.accelerometer.y * scaleY)).coerceIn(0f, height)
+            val az = (centerY - (imuData.accelerometer.z * scaleY)).coerceIn(0f, height)
 
             xPoints.add(Offset(x, ax))
             yPoints.add(Offset(x, ay))
@@ -250,10 +249,9 @@ private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float, devi
             val x = index * scaleX
             val centerY = height / 2
 
-            // Scale gyroscope data from ±250 deg/s range to pixel coordinates
-            val gx = centerY - (imuData.gyroscope.x * scaleY)
-            val gy = centerY - (imuData.gyroscope.y * scaleY)
-            val gz = centerY - (imuData.gyroscope.z * scaleY)
+            val gx = (centerY - (imuData.gyroscope.x * scaleY)).coerceIn(0f, height)
+            val gy = (centerY - (imuData.gyroscope.y * scaleY)).coerceIn(0f, height)
+            val gz = (centerY - (imuData.gyroscope.z * scaleY)).coerceIn(0f, height)
 
             xPoints.add(Offset(x, gx))
             yPoints.add(Offset(x, gy))

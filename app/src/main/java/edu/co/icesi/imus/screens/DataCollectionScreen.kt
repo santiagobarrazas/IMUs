@@ -1,8 +1,8 @@
 package edu.co.icesi.imus.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +23,10 @@ import androidx.compose.ui.unit.dp
 import edu.co.icesi.imus.components.DeviceCard
 import edu.co.icesi.imus.components.SignalVisualization
 import edu.co.icesi.imus.viewmodel.DataCollectionViewModel
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 
 @SuppressLint("MissingPermission")
 @Composable
@@ -42,9 +46,10 @@ fun DataCollectionScreen(
             style = MaterialTheme.typography.headlineSmall
         )
 
+
         LazyColumn(
             modifier = Modifier
-                .weight(1f)
+                .height(150.dp)
                 .padding(vertical = 8.dp)
         ) {
             items(uiState.connectedDevices) { device ->
@@ -52,10 +57,12 @@ fun DataCollectionScreen(
             }
         }
 
-        LazyColumn (
+
+        LazyColumn(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp)
+                .height(600.dp)
         ) {
             items(uiState.connectedDevices) { device ->
                 Text(device.name)
@@ -63,8 +70,8 @@ fun DataCollectionScreen(
                     data = uiState.imuData,
                     device = device.name,
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
+                        .height(400.dp)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
             }
