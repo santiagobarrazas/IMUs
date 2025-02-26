@@ -32,19 +32,35 @@ class DataCollectionViewModel(
                 _uiState.update { it.copy(imuData = data) }
             }
         }
+
+        viewModelScope.launch {
+            imuRepository.allTargetDevicesConnected.collect { allConnected ->
+                _uiState.update { it.copy(allTargetDevicesConnected = allConnected) }
+            }
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCollecting = imuRepository.isCollecting) }
+        }
+    }
+
+    fun scanForDevices() {
+        viewModelScope.launch {
+            imuRepository.scanForDevices(testType)
+        }
     }
 
     fun startDataCollection() {
         viewModelScope.launch {
-            imuRepository.startTest(testType)
-            _uiState.update { it.copy(isCollecting = true) }
+            imuRepository.startTest()
+            _uiState.update { it.copy(isCollecting = imuRepository.isCollecting) }
         }
     }
 
     fun stopDataCollection() {
         viewModelScope.launch {
             imuRepository.stopTest()
-            _uiState.update { it.copy(isCollecting = false) }
+            _uiState.update { it.copy(isCollecting = imuRepository.isCollecting) }
         }
     }
 }
@@ -52,5 +68,6 @@ class DataCollectionViewModel(
 data class DataCollectionUiState(
     val connectedDevices: List<BluetoothDevice> = emptyList(),
     val imuData: List<IMUData> = emptyList(),
-    val isCollecting: Boolean = false
+    val isCollecting: Boolean = false,
+    val allTargetDevicesConnected: Boolean = false
 )

@@ -43,6 +43,8 @@ class BLEManager(
 
     @SuppressLint("MissingPermission")
     fun startScan(targetDevicesList: List<IMUDevice>) {
+        stopScan()
+
         requiredDevices.clear()
         requiredDevices.addAll(targetDevicesList.map { it.bluetoothName })
 
@@ -62,14 +64,48 @@ class BLEManager(
 
     @SuppressLint("MissingPermission")
     fun stopScan() {
-        bluetoothAdapter.bluetoothLeScanner.stopScan(scanCallback)
+        try {
+            bluetoothAdapter.bluetoothLeScanner?.stopScan(scanCallback)
+            Log.d("BLE", "Scan stopped")
+        } catch (e: Exception) {
+            Log.e("BLE", "Error stopping scan", e)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun disconnectAllDevices() {
+        Log.d("BLE", "Disconnecting all devices")
+
+        stopScan()
+
+        val deviceAddresses = deviceGattMap.keys.toList()
+
+        for (address in deviceAddresses) {
+            val gatt = deviceGattMap[address]
+            if (gatt != null) {
+                try {
+                    Log.d("BLE", "Disconnecting device: ${gatt.device.name ?: "Unknown"}")
+                    gatt.disconnect()
+                    gatt.close()
+                } catch (e: Exception) {
+                    Log.e("BLE", "Error disconnecting device", e)
+                }
+                deviceGattMap.remove(address)
+            }
+        }
+
+        _connectedDevices.value = emptyList()
+
+        clearData()
+
+        Log.d("BLE", "All devices disconnected")
     }
 
     private val scanCallback = object : ScanCallback() {
         @SuppressLint("MissingPermission")
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val device = result.device
-            if (device.name in requiredDevices) {
+            if (device.name in requiredDevices && !deviceGattMap.containsKey(device.address)) {
                 connect(device)
             }
         }
@@ -151,7 +187,7 @@ class BLEManager(
         ) {
             if (characteristic.uuid == IMU_DATA_UUID) {
                 val data = characteristic.value
-                Log.d("BLE", "Received raw data: ${String(data)}")
+                //Log.d("BLE", "Received raw data: ${String(data)}")
                 parseIMUData(data, gatt.device.address)
             }
         }
@@ -185,7 +221,7 @@ class BLEManager(
     private fun parseIMUData(data: ByteArray, deviceAddress: String) {
         try {
             val jsonString = String(data)
-            Log.d("BLE", "Received data: $jsonString")
+            //Log.d("BLE", "Received data: $jsonString")
 
             val jsonElement = Json.parseToJsonElement(jsonString)
             val jsonObj = jsonElement.jsonObject
@@ -240,11 +276,18 @@ class BLEManager(
         val gatt = deviceGattMap[device.address] ?: return
         val characteristic = gatt.getService(IMU_SERVICE_UUID)?.getCharacteristic(COMMAND_UUID) ?: return
 
+        characteristicWriteInProgress = true
         characteristic.value = byteArrayOf(0)
-        gatt.writeCharacteristic(characteristic)
+        if (!gatt.writeCharacteristic(characteristic)) {
+            Log.e("BLE", "Failed to write stop signal to ${device.name}")
+            characteristicWriteInProgress = false
+        } else {
+            Log.d("BLE", "Stop signal sent to ${device.name}")
+        }
     }
 
-    fun areAllDevicesConnected(): Boolean {
-        return requiredDevices.size == _connectedDevices.value.size
+    fun clearData() {
+        _imuData.value = emptyList()
+        Log.d("BLE", "Data cleared")
     }
 }
