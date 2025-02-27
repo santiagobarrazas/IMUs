@@ -1,6 +1,5 @@
 package edu.co.icesi.imus.components
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,13 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import edu.co.icesi.imus.model.IMUData
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
+import edu.co.icesi.imus.model.IMUData
 
 @Composable
 fun SignalVisualization(
@@ -46,7 +44,7 @@ fun SignalVisualization(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Accelerometer Plot
+
         Text(
             text = "Accelerometer (g)",
             style = MaterialTheme.typography.titleMedium,
@@ -56,7 +54,7 @@ fun SignalVisualization(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Y-axis labels for Accelerometer
+
             Column(
                 modifier = Modifier.width(40.dp),
                 horizontalAlignment = Alignment.End
@@ -68,7 +66,7 @@ fun SignalVisualization(
                 Text(text = "-2", style = MaterialTheme.typography.bodySmall)
             }
 
-            // Accelerometer Plot
+
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -92,7 +90,7 @@ fun SignalVisualization(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Gyroscope Plot
+
         Text(
             text = "Gyroscope (deg/s)",
             style = MaterialTheme.typography.titleMedium,
@@ -102,7 +100,7 @@ fun SignalVisualization(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Y-axis labels for Gyroscope
+
             Column(
                 modifier = Modifier.width(40.dp),
                 horizontalAlignment = Alignment.End
@@ -114,7 +112,7 @@ fun SignalVisualization(
                 Text(text = "-250", style = MaterialTheme.typography.bodySmall)
             }
 
-            // Gyroscope Plot
+
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -136,7 +134,7 @@ fun SignalVisualization(
             }
         }
 
-        // Legend
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -168,7 +166,7 @@ private fun LegendItem(color: Color, text: String) {
 }
 
 private fun DrawScope.drawPlotBackground() {
-    // Draw grid
+
     val gridColor = Color.LightGray.copy(alpha = 0.5f)
     val verticalLines = 10
     val horizontalLines = 6
@@ -176,7 +174,7 @@ private fun DrawScope.drawPlotBackground() {
     val verticalStep = size.width / verticalLines
     val horizontalStep = size.height / horizontalLines
 
-    // Vertical grid lines
+
     for (i in 0..verticalLines) {
         val x = i * verticalStep
         drawLine(
@@ -187,7 +185,7 @@ private fun DrawScope.drawPlotBackground() {
         )
     }
 
-    // Horizontal grid lines
+
     for (i in 0..horizontalLines) {
         val y = i * horizontalStep
         drawLine(
@@ -198,7 +196,7 @@ private fun DrawScope.drawPlotBackground() {
         )
     }
 
-    // Draw center line
+
     drawLine(
         color = gridColor.copy(alpha = 0.8f),
         start = Offset(0f, size.height / 2),
@@ -213,10 +211,10 @@ private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float, 
     val zPoints = mutableListOf<Offset>()
 
     val scaleX = size.width / (data.size - 1)
-    val scaleY = height / 4  // Scale for ±2g range
+    val scaleY = height / 4
 
     data.forEachIndexed { index, imuData ->
-        if (imuData.deviceId == device){
+        if (imuData.deviceId == device) {
             val x = index * scaleX
             val centerY = height / 2
 
@@ -230,7 +228,7 @@ private fun DrawScope.drawAccelerometerData(data: List<IMUData>, height: Float, 
         }
     }
 
-    // Draw paths
+
     drawLines(points = xPoints, color = Color.Red, strokeWidth = 2f)
     drawLines(points = yPoints, color = Color.Green, strokeWidth = 2f)
     drawLines(points = zPoints, color = Color.Blue, strokeWidth = 2f)
@@ -242,10 +240,10 @@ private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float, devi
     val zPoints = mutableListOf<Offset>()
 
     val scaleX = size.width / (data.size - 1)
-    val scaleY = height / 500  // Scale for ±250 deg/s range
+    val scaleY = height / 500
 
     data.forEachIndexed { index, imuData ->
-        if (imuData.deviceId == device){
+        if (imuData.deviceId == device) {
             val x = index * scaleX
             val centerY = height / 2
 
@@ -259,7 +257,7 @@ private fun DrawScope.drawGyroscopeData(data: List<IMUData>, height: Float, devi
         }
     }
 
-    // Draw paths
+
     drawLines(points = xPoints, color = Color.Red, strokeWidth = 2f)
     drawLines(points = yPoints, color = Color.Green, strokeWidth = 2f)
     drawLines(points = zPoints, color = Color.Blue, strokeWidth = 2f)

@@ -13,16 +13,9 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.co.icesi.imus.di.AppContainer
-import edu.co.icesi.imus.model.TestType
-import edu.co.icesi.imus.screens.DataCollectionScreen
-import edu.co.icesi.imus.screens.TestSelectionScreen
 import edu.co.icesi.imus.ui.theme.IMUAppTheme
-import edu.co.icesi.imus.viewmodel.DataCollectionViewModel
-import edu.co.icesi.imus.viewmodel.DataCollectionViewModelFactory
 
 class MainActivity : ComponentActivity() {
     private lateinit var appContainer: AppContainer
@@ -43,7 +36,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         appContainer = (application as IMUApplication).appContainer
 
-        // Register permission launcher
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -75,27 +67,14 @@ class MainActivity : ComponentActivity() {
     private fun setupContent() {
         setContent {
             IMUAppTheme {
-                var currentTest by remember { mutableStateOf<TestType?>(null) }
-
                 Surface(
                     modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (currentTest == null) {
-                        TestSelectionScreen(
-                            onTestSelected = { selectedTest ->
-                                currentTest = selectedTest
-                            }
-                        )
-                    } else {
-                        val viewModel: DataCollectionViewModel = viewModel(
-                            factory = DataCollectionViewModelFactory(
-                                imuRepository = appContainer.imuRepository,
-                                testType = currentTest!!
-                            )
-                        )
-                        DataCollectionScreen(viewModel = viewModel)
-                    }
+                    IMUNavigationApp(
+                        imuRepository = appContainer.imuRepository,
+                        measurementRepository = appContainer.measurementRepository
+                    )
                 }
             }
         }

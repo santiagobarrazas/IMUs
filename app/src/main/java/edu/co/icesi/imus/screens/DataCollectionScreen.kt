@@ -32,27 +32,24 @@ import edu.co.icesi.imus.viewmodel.DataCollectionViewModel
 @Composable
 fun DataCollectionScreen(
     viewModel: DataCollectionViewModel,
-    modifier: Modifier = Modifier
+    onFinish: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Iniciar el escaneo de dispositivos al entrar a la pantalla
     LaunchedEffect(key1 = Unit) {
         viewModel.scanForDevices()
     }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Título y estado de conexión
         Text(
             text = "Dispositivos Conectados",
             style = MaterialTheme.typography.headlineSmall
         )
 
-        // Indicador de estado de conexión
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -76,7 +73,6 @@ fun DataCollectionScreen(
             }
         }
 
-        // Lista de dispositivos conectados
         LazyColumn(
             modifier = Modifier
                 .height(150.dp)
@@ -87,28 +83,31 @@ fun DataCollectionScreen(
             }
         }
 
-        // Visualización de señales cuando está recolectando
         if (uiState.isCollecting) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .height(600.dp)
-            ) {
-                items(uiState.connectedDevices) { device ->
-                    Text(device.name)
-                    SignalVisualization(
-                        data = uiState.imuData,
-                        device = device.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+            if (uiState.allTargetDevicesConnected) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .height(600.dp)
+                ) {
+                    items(uiState.connectedDevices) { device ->
+                        Text(device.name)
+                        SignalVisualization(
+                            data = uiState.imuData,
+                            device = device.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(400.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
                 }
+            } else {
+                viewModel.stopDataCollection()
             }
+
         } else {
-            // Mensaje de estado cuando no está recolectando
             Text(
                 text = if (uiState.allTargetDevicesConnected)
                     "Listo para iniciar la recolección de datos"
@@ -118,7 +117,6 @@ fun DataCollectionScreen(
             )
         }
 
-        // Botones de control
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -131,7 +129,10 @@ fun DataCollectionScreen(
             }
 
             Button(
-                onClick = { viewModel.stopDataCollection() },
+                onClick = {
+                    viewModel.stopDataCollection()
+                    onFinish()
+                },
                 enabled = uiState.isCollecting
             ) {
                 Text("Detener")
@@ -143,6 +144,16 @@ fun DataCollectionScreen(
             ) {
                 Text("Escanear")
             }
+        }
+
+        Button(
+            onClick = { onFinish() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            enabled = !uiState.isCollecting
+        ) {
+            Text("Finalizar")
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import edu.co.icesi.imus.bluetooth.BLEManager
 import edu.co.icesi.imus.data.DataStoreManager
 import edu.co.icesi.imus.repository.IMURepository
+import edu.co.icesi.imus.repository.MeasurementRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -22,5 +23,9 @@ class AppContainer(private val context: Context) {
 
     val imuRepository by lazy {
         IMURepository(bleManager, dataStoreManager.dataStore)
+    }
+
+    val measurementRepository by lazy {
+        MeasurementRepository(context = context)
     }
 }

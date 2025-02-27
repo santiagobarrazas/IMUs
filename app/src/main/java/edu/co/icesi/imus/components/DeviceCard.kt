@@ -33,7 +33,10 @@ fun DeviceCard(device: BluetoothDevice) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(text = device.name ?: "Unknown Device", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = device.name ?: "Unknown Device",
+                    style = MaterialTheme.typography.bodyLarge
+                )
                 Text(text = device.address, style = MaterialTheme.typography.bodySmall)
             }
         }

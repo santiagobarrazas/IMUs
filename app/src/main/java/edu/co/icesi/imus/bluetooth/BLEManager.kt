@@ -1,16 +1,27 @@
 package edu.co.icesi.imus.bluetooth
 
 import android.annotation.SuppressLint
-import android.bluetooth.*
-import android.bluetooth.le.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.util.Log
 import edu.co.icesi.imus.model.AccelerometerData
 import edu.co.icesi.imus.model.GyroscopeData
 import edu.co.icesi.imus.model.IMUData
 import edu.co.icesi.imus.model.IMUDevice
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.jsonObject
@@ -114,7 +125,8 @@ class BLEManager(
     @SuppressLint("MissingPermission")
     private fun connect(device: BluetoothDevice) {
         if (!deviceGattMap.containsKey(device.address)) {
-            val gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+            val gatt =
+                device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
             deviceGattMap[device.address] = gatt
             Log.e("BLE", "Connecting to ${device.name}")
         }
@@ -130,6 +142,7 @@ class BLEManager(
                     _connectedDevices.value += gatt.device
                     gatt.requestMtu(517)
                 }
+
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     Log.d("BLE", "Disconnected from $deviceName")
                     _connectedDevices.value -= gatt.device
@@ -159,7 +172,11 @@ class BLEManager(
             }
         }
 
-        override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt,
+            descriptor: BluetoothGattDescriptor,
+            status: Int
+        ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d("BLE", "Descriptor write successful for ${gatt.device.name}")
                 descriptorWriteInProgress = false
@@ -171,7 +188,11 @@ class BLEManager(
             }
         }
 
-        override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int
+        ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d("BLE", "Characteristic write successful for ${gatt.device.name}")
                 characteristicWriteInProgress = false
@@ -187,7 +208,7 @@ class BLEManager(
         ) {
             if (characteristic.uuid == IMU_DATA_UUID) {
                 val data = characteristic.value
-                //Log.d("BLE", "Received raw data: ${String(data)}")
+
                 parseIMUData(data, gatt.device.address)
             }
         }
@@ -221,12 +242,12 @@ class BLEManager(
     private fun parseIMUData(data: ByteArray, deviceAddress: String) {
         try {
             val jsonString = String(data)
-            //Log.d("BLE", "Received data: $jsonString")
+
 
             val jsonElement = Json.parseToJsonElement(jsonString)
             val jsonObj = jsonElement.jsonObject
 
-            // Extract accelerometer data
+
             val accelObj = jsonObj["accelerometer"]?.jsonObject
             val accelerometer = AccelerometerData(
                 x = accelObj?.get("x")?.jsonPrimitive?.float ?: 0f,
@@ -234,7 +255,6 @@ class BLEManager(
                 z = accelObj?.get("z")?.jsonPrimitive?.float ?: 0f
             )
 
-            // Extract gyroscope data
             val gyroObj = jsonObj["gyroscope"]?.jsonObject
             val gyroscope = GyroscopeData(
                 x = gyroObj?.get("x")?.jsonPrimitive?.float ?: 0f,
@@ -242,7 +262,7 @@ class BLEManager(
                 z = gyroObj?.get("z")?.jsonPrimitive?.float ?: 0f
             )
 
-            // Create IMUData object
+
             val imuData = IMUData(
                 deviceId = jsonObj["deviceId"]?.toString()?.replace("\"", "") ?: "",
                 accelerometer = accelerometer,
@@ -259,7 +279,8 @@ class BLEManager(
     @SuppressLint("MissingPermission")
     fun sendStartSignal(device: BluetoothDevice) {
         val gatt = deviceGattMap[device.address] ?: return
-        val characteristic = gatt.getService(IMU_SERVICE_UUID)?.getCharacteristic(COMMAND_UUID) ?: return
+        val characteristic =
+            gatt.getService(IMU_SERVICE_UUID)?.getCharacteristic(COMMAND_UUID) ?: return
 
         characteristicWriteInProgress = true
         characteristic.value = byteArrayOf(1)
@@ -274,7 +295,8 @@ class BLEManager(
     @SuppressLint("MissingPermission")
     fun sendStopSignal(device: BluetoothDevice) {
         val gatt = deviceGattMap[device.address] ?: return
-        val characteristic = gatt.getService(IMU_SERVICE_UUID)?.getCharacteristic(COMMAND_UUID) ?: return
+        val characteristic =
+            gatt.getService(IMU_SERVICE_UUID)?.getCharacteristic(COMMAND_UUID) ?: return
 
         characteristicWriteInProgress = true
         characteristic.value = byteArrayOf(0)
