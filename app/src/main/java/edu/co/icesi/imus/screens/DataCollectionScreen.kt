@@ -36,10 +36,6 @@ fun DataCollectionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.scanForDevices()
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()

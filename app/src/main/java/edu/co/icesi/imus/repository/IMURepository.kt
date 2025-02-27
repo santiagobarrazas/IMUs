@@ -32,20 +32,15 @@ class IMURepository(
     val allTargetDevicesConnected: StateFlow<Boolean> = _allTargetDevicesConnected.asStateFlow()
 
     init {
-
         monitorConnections()
     }
 
     @SuppressLint("MissingPermission")
     fun scanForDevices(testType: TestType) {
-
         if (isCollecting) {
             stopTest()
         }
-
-
         disconnectAllDevices()
-
 
         targetDevices = when (testType) {
             TestType.GAIT -> listOf(IMUDevice.LEFT_HAND, IMUDevice.RIGHT_HAND, IMUDevice.BASE_SPINE)
@@ -149,25 +144,10 @@ class IMURepository(
             }
 
             isCollecting = false
-            exportDataToCSV()
             bleManager.clearData()
         } else {
 
             bleManager.stopScan()
         }
-    }
-
-    private fun exportDataToCSV() {
-        val file = File("/storage/emulated/0/Documents/imu_data.csv")
-        file.bufferedWriter().use { writer ->
-            writer.write("Device ID, Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z, Timestamp\n")
-            imuData.value.forEach { data ->
-                writer.write(
-                    "${data.deviceId}, ${data.accelerometer.x}, ${data.accelerometer.y}, ${data.accelerometer.z}, " +
-                            "${data.gyroscope.x}, ${data.gyroscope.y}, ${data.gyroscope.z}, ${data.timestamp}\n"
-                )
-            }
-        }
-        Log.d("IMU", "Data exported to CSV: ${file.absolutePath}")
     }
 }

@@ -3,6 +3,7 @@ package edu.co.icesi.imus.viewmodel
 import android.bluetooth.BluetoothDevice
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.co.icesi.imus.model.IMUData
 import edu.co.icesi.imus.model.Patient
 import edu.co.icesi.imus.model.TestType
@@ -45,6 +46,10 @@ class DataCollectionViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isCollecting = imuRepository.isCollecting) }
+        }
+
+        viewModelScope.launch {
+            scanForDevices()
         }
     }
 
