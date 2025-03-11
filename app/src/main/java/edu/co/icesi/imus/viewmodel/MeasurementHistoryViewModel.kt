@@ -22,6 +22,11 @@ class MeasurementHistoryViewModel(
     val measurements: StateFlow<List<Measurement>> = _measurements.asStateFlow()
 
     init {
+        loadMeasurements()
+    }
+
+    fun loadMeasurements() {
+        _isLoading.value = true
         viewModelScope.launch {
             repository.getAllMeasurements()
                 .collect { data ->

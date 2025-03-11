@@ -34,6 +34,15 @@ fun MeasurementHistoryScreen(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        Button(
+            onClick = { viewModel.loadMeasurements() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Actualizar")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         when {
             isLoading -> {
                 Box(
