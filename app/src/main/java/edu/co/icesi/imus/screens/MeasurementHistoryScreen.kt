@@ -1,30 +1,18 @@
 package edu.co.icesi.imus.screens
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import edu.co.icesi.imus.model.Measurement
 import edu.co.icesi.imus.viewmodel.MeasurementHistoryViewModel
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @Composable
 fun MeasurementHistoryScreen(
@@ -33,6 +21,7 @@ fun MeasurementHistoryScreen(
     modifier: Modifier = Modifier
 ) {
     val measurements by viewModel.measurements.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Column(
         modifier = modifier
@@ -45,27 +34,36 @@ fun MeasurementHistoryScreen(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        if (measurements.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                Text("No hay mediciones registradas")
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        } else {
-            LazyColumn(modifier = Modifier.height(700.dp)) {
-                items(measurements) { measurement ->
-                    MeasurementItem(
-                        measurement = measurement,
-                        onClick = {
-                            navController.navigate("measurement_detail/${measurement.id}")
-                        }
-                    )
+            measurements.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No hay mediciones registradas")
+                }
+            }
+            else -> {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(measurements) { measurement ->
+                        MeasurementItem(
+                            measurement = measurement,
+                            onClick = {
+                                navController.navigate("measurement_detail/${measurement.id}")
+                            }
+                        )
+                    }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         Button(
             onClick = { navController.popBackStack() },
@@ -125,7 +123,7 @@ fun MeasurementItem(
 
             TextButton(
                 onClick = onClick,
-                modifier = Modifier.align(androidx.compose.ui.Alignment.End)
+                modifier = Modifier.align(Alignment.End)
             ) {
                 Text("Ver Detalles")
             }
