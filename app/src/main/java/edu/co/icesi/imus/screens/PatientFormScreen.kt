@@ -17,17 +17,13 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,7 +36,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import edu.co.icesi.imus.model.Patient
-import edu.co.icesi.imus.model.TestType
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -50,18 +45,14 @@ import java.util.TimeZone
 @Composable
 fun PatientFormScreen(
     navController: NavController,
-    onPatientInfoSubmitted: (Patient, TestType) -> Unit,
+    onPatientInfoSubmitted: (Patient) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var id by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
     var observations by remember { mutableStateOf("") }
-    var selectedTestType by remember { mutableStateOf(TestType.GAIT) }
-
-
     var showDatePicker by remember { mutableStateOf(false) }
-
     val scrollState = rememberScrollState()
 
     Column(
@@ -96,7 +87,6 @@ fun PatientFormScreen(
                 .padding(vertical = 8.dp)
         )
 
-
         OutlinedTextField(
             value = birthDate,
             onValueChange = { },
@@ -117,16 +107,14 @@ fun PatientFormScreen(
 
         if (showDatePicker) {
             val datePickerState = rememberDatePickerState()
-
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
                     TextButton(onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val utcCalendar =
-                                Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                                    timeInMillis = millis
-                                }
+                            val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                timeInMillis = millis
+                            }
                             val localCalendar = Calendar.getInstance().apply {
                                 set(
                                     utcCalendar.get(Calendar.YEAR),
@@ -134,7 +122,6 @@ fun PatientFormScreen(
                                     utcCalendar.get(Calendar.DAY_OF_MONTH)
                                 )
                             }
-
                             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                             birthDate = formatter.format(localCalendar.time)
                         }
@@ -153,7 +140,6 @@ fun PatientFormScreen(
             }
         }
 
-
         OutlinedTextField(
             value = observations,
             onValueChange = { observations = it },
@@ -163,50 +149,6 @@ fun PatientFormScreen(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         )
-
-        Text(
-            text = "Tipo de Prueba",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(top = 16.dp, bottom = 8.dp)
-        )
-
-
-        var expanded by remember { mutableStateOf(false) }
-
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TextField(
-                value = selectedTestType.displayName,
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
-            )
-
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                TestType.entries.forEach { testType ->
-                    DropdownMenuItem(
-                        text = { Text(testType.displayName) },
-                        onClick = {
-                            selectedTestType = testType
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -231,15 +173,14 @@ fun PatientFormScreen(
                         birthDate = birthDate,
                         observations = observations
                     )
-                    onPatientInfoSubmitted(patient, selectedTestType)
-                    navController.navigate("data_collection")
+                    onPatientInfoSubmitted(patient)
                 },
                 enabled = id.isNotBlank() && name.isNotBlank() && birthDate.isNotBlank(),
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp)
             ) {
-                Text("Iniciar Medición")
+                Text("Continuar")
             }
         }
     }

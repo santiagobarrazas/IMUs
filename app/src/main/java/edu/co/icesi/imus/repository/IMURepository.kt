@@ -2,7 +2,6 @@ package edu.co.icesi.imus.repository
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import edu.co.icesi.imus.bluetooth.BLEManager
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.io.File
 
 class IMURepository(
     private val bleManager: BLEManager,
@@ -24,7 +22,6 @@ class IMURepository(
     val connectedDevices: StateFlow<List<BluetoothDevice>> = bleManager.connectedDevices
     val imuData: StateFlow<List<IMUData>> = bleManager.imuData
     var isCollecting = false
-
 
     private var targetDevices: List<IMUDevice> = emptyList()
     private var targetDeviceNames: List<String> = emptyList()
@@ -44,47 +41,74 @@ class IMURepository(
 
         targetDevices = when (testType) {
             TestType.GAIT -> listOf(IMUDevice.LEFT_HAND, IMUDevice.RIGHT_HAND, IMUDevice.BASE_SPINE)
-            TestType.TOPOLOGICAL_GAIT_ANALYSIS -> listOf(
-                IMUDevice.LEFT_ANKLE,
-                IMUDevice.RIGHT_ANKLE
-            )
-
-            TestType.DYNAMIC_GAIT_INDEX -> listOf(
-                IMUDevice.LEFT_ANKLE,
-                IMUDevice.RIGHT_ANKLE,
-                IMUDevice.BASE_SPINE
-            )
-
-            TestType.TIMED_UP_AND_GO -> listOf(
-                IMUDevice.LEFT_HAND,
-                IMUDevice.RIGHT_HAND,
-                IMUDevice.LEFT_ANKLE,
-                IMUDevice.RIGHT_ANKLE,
-                IMUDevice.BASE_SPINE
-            )
-
+            TestType.TOPOLOGICAL_GAIT_ANALYSIS -> listOf(IMUDevice.LEFT_ANKLE, IMUDevice.RIGHT_ANKLE)
+            TestType.DYNAMIC_GAIT_INDEX -> listOf(IMUDevice.LEFT_ANKLE, IMUDevice.RIGHT_ANKLE, IMUDevice.BASE_SPINE)
+            TestType.TIMED_UP_AND_GO -> listOf(IMUDevice.LEFT_HAND, IMUDevice.RIGHT_HAND, IMUDevice.LEFT_ANKLE, IMUDevice.RIGHT_ANKLE, IMUDevice.BASE_SPINE)
             TestType.ONLY_RIGHT_HAND -> listOf(IMUDevice.RIGHT_HAND)
         }
 
         targetDeviceNames = targetDevices.map { it.bluetoothName }
-
-        Log.d("IMU", "Scanning for devices: $targetDeviceNames")
-
-
         _allTargetDevicesConnected.value = false
-
-
         bleManager.startScan(targetDevices)
     }
 
     @SuppressLint("MissingPermission")
+    fun startTest() {
+        if (!allTargetDevicesConnected.value) return
+        connectedDevices.value.forEach { device ->
+            if (targetDeviceNames.contains(device.name)) {
+                bleManager.sendStartSignal(device)
+            }
+        }
+        isCollecting = true
+    }
+
+    @SuppressLint("MissingPermission")
+    fun pauseTest() {
+        connectedDevices.value.forEach { device ->
+            if (targetDeviceNames.contains(device.name)) {
+                bleManager.sendStopSignal(device)
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun resumeTest() {
+        connectedDevices.value.forEach { device ->
+            if (targetDeviceNames.contains(device.name)) {
+                bleManager.sendStartSignal(device)
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun stopTest() {
+        if (isCollecting) {
+            connectedDevices.value.forEach { device ->
+                if (targetDeviceNames.contains(device.name)) {
+                    bleManager.sendStopSignal(device)
+                }
+            }
+            isCollecting = false
+            bleManager.clearData()
+        } else {
+            bleManager.stopScan()
+        }
+    }
+
+    fun getTargetDeviceNames(testType: TestType): List<String> {
+        return when (testType) {
+            TestType.GAIT -> listOf("LEFT-HAND", "RIGHT-HAND", "BASE-SPINE")
+            TestType.TOPOLOGICAL_GAIT_ANALYSIS -> listOf("LEFT-ANKLE", "RIGHT-ANKLE")
+            TestType.DYNAMIC_GAIT_INDEX -> listOf("LEFT-ANKLE", "RIGHT-ANKLE", "BASE-SPINE")
+            TestType.TIMED_UP_AND_GO -> listOf("LEFT-HAND", "RIGHT-HAND", "LEFT-ANKLE", "RIGHT-ANKLE", "BASE-SPINE")
+            TestType.ONLY_RIGHT_HAND -> listOf("RIGHT-HAND")
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     private fun disconnectAllDevices() {
-        Log.d("IMU", "Disconnecting all existing devices before new scan")
-
-
         bleManager.disconnectAllDevices()
-
-
         bleManager.coroutineScope.launch {
             delay(500)
         }
@@ -99,55 +123,9 @@ class IMURepository(
                     val allConnected = targetDeviceNames.all { targetName ->
                         connectedNames.contains(targetName)
                     }
-
-
                     _allTargetDevicesConnected.value = allConnected
-
-                    Log.d("IMU", "Device connection status updated: $allConnected")
-                    Log.d("IMU", "Connected devices: $connectedNames")
-                    Log.d("IMU", "Target devices: $targetDeviceNames")
                 }
             }
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    fun startTest() {
-
-        if (!allTargetDevicesConnected.value) {
-            Log.e("IMU", "Cannot start test: not all target devices are connected")
-            return
-        }
-
-        Log.d("IMU", "All devices connected. Starting test...")
-
-
-        connectedDevices.value.forEach { device ->
-            if (targetDeviceNames.contains(device.name)) {
-                bleManager.sendStartSignal(device)
-                Log.d("IMU", "Sent start signal to device: ${device.name}")
-            }
-        }
-
-        isCollecting = true
-    }
-
-    @SuppressLint("MissingPermission")
-    fun stopTest() {
-        if (isCollecting) {
-
-            connectedDevices.value.forEach { device ->
-                if (targetDeviceNames.contains(device.name)) {
-                    bleManager.sendStopSignal(device)
-                    Log.d("IMU", "Sent stop signal to device: ${device.name}")
-                }
-            }
-
-            isCollecting = false
-            bleManager.clearData()
-        } else {
-
-            bleManager.stopScan()
         }
     }
 }
