@@ -1,5 +1,6 @@
 package edu.co.icesi.imus
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,6 +25,7 @@ import edu.co.icesi.imus.viewmodel.DataCollectionViewModel
 import edu.co.icesi.imus.viewmodel.IMUConnectionViewModel
 import edu.co.icesi.imus.viewmodel.MeasurementHistoryViewModel
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun IMUNavigationApp(
     imuRepository: IMURepository,
