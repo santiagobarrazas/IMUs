@@ -58,11 +58,11 @@ fun IMUConnectionScreen(
 
             uiState.deviceConnectionStatus.forEach { (device, isConnected) ->
                 val position = when (device) {
-                    "LEFT-HAND" -> Modifier.align(Alignment.TopStart).padding(start = 50.dp, top = 50.dp)
-                    "RIGHT-HAND" -> Modifier.align(Alignment.TopEnd).padding(end = 50.dp, top = 50.dp)
-                    "LEFT-ANKLE" -> Modifier.align(Alignment.BottomStart).padding(start = 70.dp, bottom = 20.dp)
-                    "RIGHT-ANKLE" -> Modifier.align(Alignment.BottomEnd).padding(end = 70.dp, bottom = 20.dp)
-                    "BASE-SPINE" -> Modifier.align(Alignment.Center)
+                    "LEFT-HAND" -> Modifier.align(Alignment.TopStart).padding(start = 140.dp, top = 150.dp)
+                    "RIGHT-HAND" -> Modifier.align(Alignment.TopEnd).padding(end = 140.dp, top = 150.dp)
+                    "LEFT-ANKLE" -> Modifier.align(Alignment.BottomStart).padding(start = 170.dp, bottom = 10.dp)
+                    "RIGHT-ANKLE" -> Modifier.align(Alignment.BottomEnd).padding(end = 170.dp, bottom = 10.dp)
+                    "BASE-SPINE" -> Modifier.align(Alignment.Center).padding(bottom = 60.dp)
                     else -> Modifier
                 }
                 Box(

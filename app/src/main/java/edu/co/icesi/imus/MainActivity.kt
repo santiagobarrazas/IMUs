@@ -15,7 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.core.content.ContextCompat
 import edu.co.icesi.imus.di.AppContainer
-import edu.co.icesi.imus.ui.theme.IMUAppTheme
+import edu.co.icesi.imus.ui.theme.IMUTheme
 
 class MainActivity : ComponentActivity() {
     private lateinit var appContainer: AppContainer
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
 
     private fun setupContent() {
         setContent {
-            IMUAppTheme {
+            IMUTheme {
                 Surface(
                     modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
